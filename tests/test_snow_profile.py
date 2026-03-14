@@ -19,7 +19,7 @@ def test_get_data_from_caaml_url_parser():
         </caaml:CAAML>
         """
 
-    def mock_requests_get(url, timeout=10):
+    def mock_requests_get(url, headers=None, timeout=10):
         mock_resp = Mock()
         if url.endswith("/caaml"):
             mock_resp.content = caaml_content.encode()

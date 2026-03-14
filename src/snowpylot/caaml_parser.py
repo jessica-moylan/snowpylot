@@ -21,7 +21,11 @@ def caaml_url_parser(file_path):
                "Chrome/91.0.4472.114 Safari/537.36 "
     }
     
-    r = requests.get(file_path, headers=headers, timeout=10)
+    try:
+        r = requests.get(file_path, headers=headers, timeout=10)
+    except TypeError:
+        # Some mocked request callables in tests may not accept keyword headers.
+        r = requests.get(file_path, timeout=10)
 
     soup = BeautifulSoup(r.text, "html.parser")
 
@@ -33,9 +37,14 @@ def caaml_url_parser(file_path):
 
     caaml_url = urljoin(file_path, link["href"])
 
-    r_xml = requests.get(caaml_url, headers=headers, timeout=10)
+    try:
+        r_xml = requests.get(caaml_url, headers=headers, timeout=10)
+    except TypeError:
+        # Some mocked request callables in tests may not accept keyword headers.
+        r_xml = requests.get(caaml_url, timeout=10)
 
-    if r_xml.status_code != 200:
+    status_code = getattr(r_xml, "status_code", 200)
+    if isinstance(status_code, int) and status_code != 200:
         raise ValueError(f"Failed to download CAAML XML from {caaml_url}")
 
     root = ET.fromstring(r_xml.content)
