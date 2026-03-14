@@ -10,17 +10,17 @@ from .snow_profile import DensityObs, SurfaceCondition, TempObs
 from .stability_tests import ComprTest, ExtColumnTest, PropSawTest, RBlockTest
 from .whumpf_data import WhumpfData
 
-headers ={
-    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)"
-                  "AppleWebKit/537.36 (KHTML, like Gecko) "
-                  "Chrome/91.0.4472.114 Safari/537.36 "
-}
 
 def caaml_url_parser(file_path):
     """
     Receives a SnowPilot observation URL and retrieves the CAAML XML file.
     """
 
+    headers ={ "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)"
+               "AppleWebKit/537.36 (KHTML, like Gecko) "
+               "Chrome/91.0.4472.114 Safari/537.36 "
+    }
+    
     r = requests.get(file_path, headers=headers, timeout=10)
 
     soup = BeautifulSoup(r.text, "html.parser")
