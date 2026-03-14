@@ -10,22 +10,35 @@ from .snow_profile import DensityObs, SurfaceCondition, TempObs
 from .stability_tests import ComprTest, ExtColumnTest, PropSawTest, RBlockTest
 from .whumpf_data import WhumpfData
 
+headers ={
+    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)"
+                  "AppleWebKit/537.36 (KHTML, like Gecko) "
+                  "Chrome/91.0.4472.114 Safari/537.36 "
+}
+
 def caaml_url_parser(file_path):
     """
-    The function receives a URL to a SnowPilot observation and retrieves the caaml.xml file,
+    Receives a SnowPilot observation URL and retrieves the CAAML XML file.
     """
-    soup = BeautifulSoup(requests.get(file_path, timeout=10).text, "html.parser")
-    
-    caaml_href = next((a["href"] for a in soup.find_all("a", href=True) if "caaml" in a.text.lower()), None)
 
-    if caaml_href is None:
-        raise ValueError("No caaml.xml file found in the provided URL.")
-    
-    caaml_url = urljoin(file_path, caaml_href)
-    caaml = requests.get(caaml_url, timeout=10).content
+    r = requests.get(file_path, headers=headers, timeout=10)
 
-    # retrieve the caaml.xml file data
-    root = ET.fromstring(caaml)
+    soup = BeautifulSoup(r.text, "html.parser")
+
+    # find CAAML download link
+    link = soup.find("a", href=lambda h: h and "download/caaml" in h)
+
+    if link is None:
+        raise ValueError("No CAAML file found in the provided URL.")
+
+    caaml_url = urljoin(file_path, link["href"])
+
+    r_xml = requests.get(caaml_url, headers=headers, timeout=10)
+
+    if r_xml.status_code != 200:
+        raise ValueError(f"Failed to download CAAML XML from {caaml_url}")
+
+    root = ET.fromstring(r_xml.content)
 
     return _parse_caaml(root)
 
